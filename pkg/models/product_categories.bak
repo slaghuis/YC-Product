@@ -1,0 +1,115 @@
+package models
+
+
+type ProductCategory struct {
+    ProductID  uint `gorm:"primaryKey"`
+    CategoryID uint `gorm:"primaryKey"`
+}
+
+// First query result
+type BaseCategory struct {
+    AlternateKey string `gorm:"column:alternate_key" json:"alternate_key"`
+    Name         string `gorm:"column:name" json:"group_name"`
+}
+
+// Second query result
+type ProductCategoryItem struct {
+    CategoryID   int    `gorm:"column:category_id" json:"category_id"`
+    CategoryName string `gorm:"column:category_name" json:"category_name"`
+    IconPath     string `gorm:"column:icon_path" json:"icon_path"`
+    Selected     bool   `gorm:"column:selected" json:"selected"`
+}
+
+// Final JSON response
+type CategoriesResponse struct {
+    Groups []CategoryGroup `json:"groups"`
+}
+
+// Each group contains its key, name, and categories
+type CategoryGroup struct {
+    AlternateKey string            			`json:"alternate_key"`
+    GroupName    string            			`json:"group_name"`
+    Categories   []ProductCategoryItem 	`json:"categories"`
+}
+
+/*
+func ReadProductCategories(db *gorm.DB, id string) (CategoriesResponse, error) {
+  // Now read the product Categories in two steps.  Find all the caltegory types
+  // and then list the categories that we have to deal with
+  var baseKeys []BaseCategory
+
+  // First query: get base category keys + names
+  if err := db.Table("dbo.categories AS child").
+      Select("child.alternate_key, child.name").
+      Joins("JOIN dbo.categories AS parent ON parent.id = child.parent_id").
+      Where("parent.alternate_key = ?", "base").
+      Scan(&baseKeys).Error; err != nil {
+
+      // c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return CategoriesResponse{}, err
+  }
+
+  // Prepare response
+  category_response := CategoriesResponse{
+      Groups: make([]CategoryGroup, 0, len(baseKeys)),
+  }
+
+  // Loop through base keys and run second query for each
+  for _, bk := range baseKeys {
+      var productCategories []ProductCategoryItem
+      if err := db.Table("dbo.categories AS parent").
+          Select(`
+              child.id AS category_id,
+              child.name AS category_name,
+              child.icon_path,
+              CASE WHEN cat.product_id IS NULL THEN FALSE ELSE TRUE END AS selected
+          `).
+          Joins("INNER JOIN dbo.categories AS child ON child.parent_id = parent.id").
+          Joins("LEFT JOIN dbo.product_categories AS cat ON cat.category_id = child.id AND cat.product_id = ?", id).
+          Where("parent.alternate_key = ?", bk.AlternateKey).
+          Order("child.sort_order ASC").
+          Scan(&productCategories).Error; err != nil {
+
+          return category_response, err
+      }
+
+      // Add group with categories
+      category_response.Groups = append(category_response.Groups, CategoryGroup{
+          AlternateKey: bk.AlternateKey,
+          GroupName:    bk.Name,
+          Categories:   productCategories,
+      })
+  }
+
+  return category_response, nil
+}
+*/
+
+/*
+// UpdateProductCategories updates the categories for a given product.
+// It inserts new associations (upsert) and deletes removed ones in a transaction.
+func UpdateProductCategories(db *gorm.DB, productID uint, categoryIDs []uint) error {
+    return db.Transaction(func(tx *gorm.DB) error {
+        // Step 1: Insert new associations (upsert)
+        newCategories := make([]ProductCategory, len(categoryIDs))
+        for i, cid := range categoryIDs {
+            newCategories[i] = ProductCategory{ProductID: productID, CategoryID: cid}
+        }
+
+        if err := tx.Clauses(clause.OnConflict{
+            Columns:   []clause.Column{{Name: "product_id"}, {Name: "category_id"}},
+            DoNothing: true,
+        }).Create(&newCategories).Error; err != nil {
+            return err
+        }
+
+        // Step 2: Delete associations not in the new set
+        if err := tx.Where("product_id = ? AND category_id NOT IN ?", productID, categoryIDs).
+            Delete(&ProductCategory{}).Error; err != nil {
+            return err
+        }
+
+        return nil
+    })
+}
+*/
