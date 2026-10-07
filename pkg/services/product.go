@@ -289,12 +289,12 @@ func (s *productService) GetShopProduct(ctx context.Context, productID string) (
      Name        : row.Name,
      Description : row.Description,
      Promoted    : row.Promoted,
-     ImagePath:    row.ImagePath,
-     MinPrice:     row.MinPrice,
-     MaxPrice:     row.MaxPrice,
-     LikesCount:   row.LikesCount,
-     ReviewsCount: row.ReviewsCount,
-     SKUCount:     row.SKUCount,
+     ImagePath   : row.ImagePath,
+     MinPrice    : row.MinPrice,
+     MaxPrice    : row.MaxPrice,
+//     LikesCount: row.LikesCount,
+//     ReviewsCount: row.ReviewsCount,
+     SKUCount     : row.SKUCount,
    }
 
    //Unmarshal the raw JSON into the typed slice
